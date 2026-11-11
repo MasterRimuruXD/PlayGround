@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#101a2b" />
+  <title>Hold Me Close — The Long Way Up</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="game-shell">
+    <canvas id="scene" aria-label="3D climbing game"></canvas>
+    <div class="vignette"></div>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Hold Me Close"><span class="brand-mark">↗</span><span>HOLD ME <b>CLOSE</b></span></a>
+      <div class="route"><span class="route-dot"></span> THE LONG WAY UP</div>
+      <button id="sound-btn" class="icon-button" aria-label="Toggle sound">♫ <span>SOUND ON</span></button>
+    </header>
+    <section class="hud" aria-live="polite">
+      <div class="altitude-card">
+        <div class="eyebrow">ALTITUDE <span>•</span> <b id="altitude">0</b> m</div>
+        <div class="progress-track"><div id="progress-fill"></div><span class="summit-tick"></span></div>
+        <div class="route-labels"><span>BASE CAMP</span><span>THE SUMMIT</span></div>
+      </div>
+      <div class="stamina-card">
+        <div class="stamina-label"><span>GRIP STRENGTH</span><b id="stamina-value">100%</b></div>
+        <div class="stamina-track"><div id="stamina-fill"></div></div>
+        <div id="stamina-note">Steady hands. Keep going.</div>
+      </div>
+    </section>
+    <div id="climb-hint" class="climb-hint"><span class="hint-key">CLICK</span> A HOLD TO REACH FOR IT</div>
+    <aside class="controls-card">
+      <div class="control-title">YOUR HANDS <span>SELECT ONE</span></div>
+      <div class="hands-row">
+        <button id="left-hand" class="hand-select active"><span class="hand-icon left">L</span><span>LEFT</span><kbd>Q</kbd></button>
+        <button id="right-hand" class="hand-select"><span class="hand-icon right">R</span><span>RIGHT</span><kbd>E</kbd></button>
+      </div>
+      <div class="control-foot"><span class="mouse-icon">⌖</span> Click a nearby hold to reach</div>
+      <div class="keyboard-help"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>SPACE</kbd> switch</div>
+    </aside>
+    <div id="toast" class="toast"></div>
+    <div class="bottom-note"><span class="weather-icon">☀</span> CLEAR SKIES <span class="note-sep">/</span> WIND 08 KM/H</div>
+
+    <section id="intro" class="overlay visible">
+      <div class="intro-card">
+        <div class="chapter">A STORY ABOUT SHOWING UP</div>
+        <div class="intro-art"><div class="art-sun"></div><div class="art-ridge ridge-back"></div><div class="art-ridge ridge-front"></div><div class="art-cliff"></div><div class="art-figure">♥</div></div>
+        <h1>One more<br><em>reach.</em></h1>
+        <p>She’s waiting at the top. The mountain doesn’t care why you’re late. Take it one hold at a time.</p>
+        <div class="intro-instructions"><span><b>01</b> Choose a hand</span><span><b>02</b> Reach for a hold</span><span><b>03</b> Keep your grip</span></div>
+        <button id="start-btn" class="primary-button">START CLIMBING <span>↗</span></button>
+        <div class="tiny-caption">NO RUSH. BREATHE. YOU’VE GOT THIS.</div>
+      </div>
+    </section>
+    <section id="ending" class="overlay">
+      <div class="ending-card">
+        <div class="ending-heart">♥</div>
+        <div class="chapter">YOU MADE IT</div>
+        <h2>Worth every<br><em>step.</em></h2>
+        <p>“I knew you’d find your way up.”<br>Some things are worth the climb.</p>
+        <div class="summit-stats"><span>SUMMIT REACHED</span><b id="final-time">00:00</b></div>
+        <button id="again-btn" class="primary-button">CLIMB AGAIN <span>↻</span></button>
+      </div>
+    </section>
+    <div id="loading" class="loading"><span class="loader"></span> PREPARING YOUR CLIMB</div>
+  </main>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
