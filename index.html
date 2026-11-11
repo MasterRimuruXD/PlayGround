@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0a0c1a" />
+  <title>Jelly Juggle — The Squish Lab</title>
+  <style>
+    :root { color-scheme: dark; --ink:#f4f3ff; --muted:#a4a8c3; --cyan:#70f6e1; --pink:#ff8ad7; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; width:100%; min-height:100%; background:#090b18; color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    body { min-height:100svh; display:grid; place-items:center; overflow:hidden; padding:22px; background:radial-gradient(ellipse at 50% 20%,#202040 0,#111329 42%,#090b18 100%); }
+    .shell { width:min(1120px,100%); height:min(760px,calc(100svh - 44px)); min-height:540px; display:flex; flex-direction:column; position:relative; border:1px solid #ffffff1a; border-radius:24px; overflow:hidden; background:#0d1020; box-shadow:0 32px 100px #0009,0 0 0 1px #8b8bff0b inset; }
+    .topbar { height:76px; flex:none; display:flex; align-items:center; gap:20px; padding:0 26px; border-bottom:1px solid #ffffff12; background:#111426d9; z-index:2; }
+    .brand { display:flex; align-items:center; gap:12px; min-width:225px; }
+    .brand-mark { width:38px; height:38px; display:grid; place-items:center; border-radius:13px; font-size:20px; color:#08151b; background:linear-gradient(145deg,#8effed,#48c7e9); box-shadow:0 0 24px #65edd533; }
+    .brand-name { font-size:13px; line-height:1.1; letter-spacing:.15em; font-weight:850; }
+    .brand-sub { margin-top:5px; font-size:9px; color:#9ca4c2; letter-spacing:.19em; font-weight:700; }
+    .top-spacer { flex:1; }
+    .stat { display:flex; align-items:center; gap:10px; min-width:90px; }
+    .stat-icon { font-size:15px; color:var(--cyan); }
+    .stat-label { color:#8f95b2; letter-spacing:.12em; font-weight:800; font-size:9px; }
+    .stat-value { display:block; font-variant-numeric:tabular-nums; font-weight:800; font-size:18px; margin-top:1px; }
+    .divider { height:31px; border-left:1px solid #ffffff18; }
+    .sound-btn { width:37px; height:37px; border:1px solid #ffffff1a; border-radius:12px; background:#ffffff08; color:#cdd1e7; cursor:pointer; font-size:16px; }
+    .sound-btn:hover { background:#ffffff14; }
+    .stage { position:relative; flex:1; min-height:0; overflow:hidden; background:linear-gradient(180deg,#16182d 0%,#101629 64%,#131a2d 100%); }
+    canvas { position:absolute; inset:0; width:100%; height:100%; touch-action:none; }
+    .stage-vignette { pointer-events:none; position:absolute; inset:0; box-shadow:inset 0 0 130px #050713a6; }
+    .objective { position:absolute; top:20px; left:24px; display:flex; align-items:center; gap:9px; color:#c7cce3; font-size:11px; letter-spacing:.07em; font-weight:700; pointer-events:none; text-shadow:0 2px 8px #000; }
+    .objective i { width:7px; height:7px; border-radius:50%; background:var(--pink); box-shadow:0 0 13px var(--pink); }
+    .progress { position:absolute; top:20px; right:24px; width:132px; text-align:right; pointer-events:none; }
+    .progress-label { color:#999fbd; font-size:9px; font-weight:800; letter-spacing:.14em; margin-bottom:7px; }
+    .track { width:100%; height:4px; background:#ffffff20; border-radius:9px; overflow:hidden; }
+    .fill { height:100%; width:0; border-radius:9px; background:linear-gradient(90deg,#ff80d4,#7df2e0); box-shadow:0 0 12px #80f3e7; transition:width .25s ease; }
+    .overlay { position:absolute; inset:0; display:grid; place-items:center; padding:24px; background:linear-gradient(90deg,#0c10207c,#0d102044,#0c10207c); backdrop-filter:blur(2px); transition:opacity .25s ease,visibility .25s; }
+    .overlay.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+    .card { width:min(430px,100%); padding:30px 34px 28px; text-align:center; border:1px solid #ffffff21; border-radius:22px; background:linear-gradient(145deg,#1d2138eF,#15192ceF); box-shadow:0 20px 70px #0008,0 0 45px #83f1e20c; }
+    .eyebrow { color:#8df2df; letter-spacing:.2em; font-size:9px; font-weight:900; }
+    h1 { margin:12px 0 9px; font-size:clamp(28px,5vw,39px); line-height:1; letter-spacing:-.04em; }
+    .copy { max-width:330px; margin:0 auto 21px; color:#aeb3cc; font-size:13px; line-height:1.6; }
+    .legend { display:flex; justify-content:center; gap:14px; margin:0 0 23px; color:#ccd0e5; font-size:10px; font-weight:700; }
+    .legend span { display:flex; align-items:center; gap:6px; }
+    .legend b { color:#81f1df; font-size:13px; }
+    .play-btn { width:100%; height:48px; border:0; border-radius:13px; background:linear-gradient(100deg,#74f4df,#7ad4f5); color:#09131c; font-weight:900; letter-spacing:.08em; font-size:12px; cursor:pointer; box-shadow:0 7px 25px #67eadb30; transition:transform .15s,filter .15s; }
+    .play-btn:hover { transform:translateY(-2px); filter:brightness(1.08); }
+    .footnote { color:#717995; margin-top:14px; font-size:9px; letter-spacing:.08em; }
+    .bottombar { flex:none; min-height:57px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; background:#111426; border-top:1px solid #ffffff12; color:#8f95b1; font-size:10px; letter-spacing:.04em; }
+    .hint { display:flex; align-items:center; gap:8px; }
+    .key { padding:4px 7px; border:1px solid #ffffff26; border-bottom-width:2px; border-radius:5px; color:#d5d8e9; font-size:9px; font-weight:800; }
+    .credit { color:#707791; }
+    @media(max-width:640px) {
+      body { padding:0; }
+      .shell { height:100svh; min-height:0; border-radius:0; border:0; }
+      .topbar { height:65px; padding:0 15px; gap:12px; }
+      .brand { min-width:0; flex:1; gap:9px; }
+      .brand-mark { width:34px;height:34px; }
+      .brand-name { font-size:11px; }
+      .brand-sub { font-size:8px; }
+      .stat { min-width:54px; gap:6px; }
+      .stat:nth-of-type(3) { min-width:65px; }
+      .stat-label { font-size:8px; }
+      .stat-value { font-size:15px; }
+      .divider { height:27px; }
+      .sound-btn { width:33px;height:33px; }
+      .objective { left:15px; top:16px; font-size:9px; }
+      .progress { top:16px; right:15px; width:100px; }
+      .progress-label { font-size:8px; }
+      .bottombar { min-height:53px; padding:0 14px; font-size:9px; }
+      .credit { display:none; }
+      .card { padding:26px 23px 23px; }
+    }
+    @media(max-height:620px) and (min-width:641px) { .shell { min-height:0; height:calc(100svh - 24px); } .topbar { height:61px; } .bottombar { min-height:45px; } }
+  </style>
+</head>
+<body>
+  <main class="shell" aria-label="Jelly Juggle game">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">◉</div><div><div class="brand-name">JELLY JUGGLE</div><div class="brand-sub">THE SQUISH LAB · 01</div></div></div>
+      <div class="top-spacer"></div>
+      <div class="stat"><span class="stat-icon">✦</span><div><span class="stat-label">SCORE</span><span class="stat-value" id="score">000</span></div></div>
+      <div class="divider"></div>
+      <div class="stat"><span class="stat-icon" style="color:#ff91d8">◷</span><div><span class="stat-label">TIME</span><span class="stat-value" id="time">45</span></div></div>
+      <button class="sound-btn" id="sound" aria-label="Toggle sound" title="Toggle sound">♫</button>
+    </header>
+    <section class="stage" id="stage">
+      <canvas id="game" aria-label="Play by guiding the jelly orb into floating stars"></canvas>
+      <div class="stage-vignette"></div>
+      <div class="objective"><i></i><span>COLLECT THE FLOATING STARS</span></div>
+      <div class="progress"><div class="progress-label">LAB CHARGE <span id="chargeText">0%</span></div><div class="track"><div class="fill" id="charge"></div></div></div>
+      <div class="overlay" id="overlay">
+        <div class="card">
+          <div class="eyebrow" id="eyebrow">A LITTLE BOUNCE GOES A LONG WAY</div>
+          <h1 id="title">Jelly Juggle</h1>
+          <p class="copy" id="copy">Guide your springy little jelly through the lab. Scoop up glowing stars before the timer runs out!</p>
+          <div class="legend"><span><b>↗</b> Move to steer</span><span><b>␣</b> Pulse boost</span></div>
+          <button class="play-btn" id="play">START JUGGLING</button>
+          <div class="footnote" id="best">BEST RUN · 0 STARS</div>
+        </div>
+      </div>
+    </section>
+    <footer class="bottombar"><div class="hint"><span class="key">MOUSE / TOUCH</span> steer <span class="key">SPACE</span> pulse</div><div class="credit">SOFT BODY PHYSICS · ZERO STRESS</div></footer>
+  </main>
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage');
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const chargeEl = document.getElementById('charge');
+  const chargeText = document.getElementById('chargeText');
+  const overlay = document.getElementById('overlay');
+  const playBtn = document.getElementById('play');
+  const soundBtn = document.getElementById('sound');
+  const W = { w: 0, h: 0, dpr: 1 };
+  let state = 'ready', last = performance.now(), elapsed = 0, remaining = 45, score = 0, best = 0;
+  let pointer = { x: 0, y: 0, active: false }, keys = {};
+  let orb, stars = [], particles = [], texts = [], bgDots = [], audioCtx = null, soundOn = false;
+  const rand = (a,b) => a + Math.random() * (b-a);
+  const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+  function resize() {
+    const r = stage.getBoundingClientRect(); W.w = r.width; W.h = r.height; W.dpr = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W.w * W.dpr); canvas.height = Math.round(W.h * W.dpr);
+    ctx.setTransform(W.dpr,0,0,W.dpr,0,0);
+    if (!orb) resetOrb();
+    orb.x = clamp(orb.x,60,W.w-60); orb.y = clamp(orb.y,90,W.h-75);
+    bgDots = Array.from({length:Math.max(28,Math.round(W.w/20))},()=>({x:Math.random()*W.w,y:Math.random()*W.h,z:rand(.35,1),p:rand(0,6.28)}));
+    if (state === 'ready') placeStars();
+  }
+  function resetOrb() { orb = {x:W.w*.48,y:W.h*.53,vx:0,vy:0,r:Math.min(64,Math.max(42,W.h*.09)), squash:0, pulse:0, trail:[]}; }
+  function placeStars() {
+    stars = Array.from({length:7},(_,i)=>({x:rand(W.w*.18,W.w*.84),y:rand(W.h*.2,W.h*.82),r:rand(10,14),phase:rand(0,6.28),z:rand(.78,1.15),id:i}));
+  }
+  function start() {
+    state='playing'; elapsed=0; remaining=45; score=0; particles=[]; texts=[]; resetOrb(); placeStars();
+    pointer.active=false; scoreEl.textContent='000'; timeEl.textContent='45'; overlay.classList.add('hidden'); last=performance.now();
+  }
+  function endGame(won) {
+    state='ended'; best=Math.max(best,score);
+    document.getElementById('eyebrow').textContent=won?'LAB MASTERED':'TIME TO REST';
+    document.getElementById('title').textContent=won?'Brilliant bounce!':'Nice and squishy.';
+    document.getElementById('copy').textContent=won?'You found every last star. Your jelly is the official lab champion!':`You collected ${score} ${score===1?'star':'stars'} this run. One more round to beat your best?`;
+    document.getElementById('play').textContent='PLAY AGAIN';
+    document.getElementById('best').textContent=`BEST RUN · ${best} ${best===1?'STAR':'STARS'}`;
+    overlay.classList.remove('hidden');
+  }
+  function setPointer(e) {
+    const r=canvas.getBoundingClientRect(); pointer.x=e.clientX-r.left; pointer.y=e.clientY-r.top; pointer.active=true;
+  }
+  canvas.addEventListener('pointermove',setPointer);
+  canvas.addEventListener('pointerdown',e=>{setPointer(e);canvas.setPointerCapture?.(e.pointerId); if(state==='ready') start(); else if(state==='playing') pulse();});
+  canvas.addEventListener('pointerleave',()=>{pointer.active=false;});
+  window.addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='Space'&&!e.repeat&&state==='playing')pulse();if(e.code==='Enter'&&(state==='ready'||state==='ended'))start();});
+  window.addEventListener('keyup',e=>{keys[e.code]=false;});
+  playBtn.addEventListener('click',start);
+  soundBtn.addEventListener('click',()=>{soundOn=!soundOn;soundBtn.textContent=soundOn?'♫':'♪';soundBtn.style.color=soundOn?'#80f2df':'';if(soundOn)beep(540,.07,.02);});
+  function beep(freq,duration,gain=.035) { if(!soundOn)return;try{audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(gain,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration);}catch(_){} }
+  function pulse() {
+    if(!orb||state!=='playing')return;
+    const dx=orb.x-(pointer.active?pointer.x:W.w/2),dy=orb.y-(pointer.active?pointer.y:H()/2),d=Math.hypot(dx,dy)||1;
+    orb.vx+=dx/d*280;orb.vy+=dy/d*280;orb.pulse=1;orb.squash=-.22;
+    burst(orb.x,orb.y,'#83fff0',9,120);beep(260,.16,.045);
+  }
+  function H(){return W.h;}
+  function burst(x,y,color,n=14,speed=170){for(let i=0;i<n;i++){const a=rand(0,Math.PI*2),v=rand(speed*.3,speed);particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.38,.8),max:.8,r:rand(1.5,4),color});}}
+  function addStar() {stars.push({x:rand(W.w*.12,W.w*.88),y:rand(W.h*.17,W.h*.85),r:rand(10,15),phase:rand(0,6.28),z:rand(.78,1.15),id:Math.random()});}
+  function update(dt) {
+    elapsed+=dt;
+    for(const d of bgDots)d.p+=dt*(.3+d.z*.4);
+    if(state==='playing') {
+      remaining-=dt;
+      if(remaining<=0){remaining=0;endGame(false);}
+      let tx=pointer.active?pointer.x:W.w*(.5+Math.sin(elapsed*.7)*.22),ty=pointer.active?pointer.y:W.h*(.5+Math.cos(elapsed*.53)*.2);
+      if(keys.ArrowLeft||keys.KeyA)tx-=W.w*.22;if(keys.ArrowRight||keys.KeyD)tx+=W.w*.22;if(keys.ArrowUp||keys.KeyW)ty-=W.h*.22;if(keys.ArrowDown||keys.KeyS)ty+=W.h*.22;
+      const dx=tx-orb.x,dy=ty-orb.y;
+      orb.vx+=dx*5.2*dt;orb.vy+=dy*5.2*dt;
+      orb.vx*=Math.pow(.12,dt);orb.vy*=Math.pow(.12,dt);
+      orb.x+=orb.vx*dt;orb.y+=orb.vy*dt;
+      const pad=orb.r*.75;
+      if(orb.x<pad){orb.x=pad;orb.vx=Math.abs(orb.vx)*.72;orb.squash=.25;}if(orb.x>W.w-pad){orb.x=W.w-pad;orb.vx=-Math.abs(orb.vx)*.72;orb.squash=.25;}
+      if(orb.y<75){orb.y=75;orb.vy=Math.abs(orb.vy)*.72;}if(orb.y>W.h-35){orb.y=W.h-35;orb.vy=-Math.abs(orb.vy)*.72;orb.squash=.23;}
+      orb.squash*=Math.pow(.08,dt);orb.pulse*=Math.pow(.025,dt);
+      orb.trail.unshift({x:orb.x,y:orb.y});if(orb.trail.length>8)orb.trail.pop();
+      for(let i=stars.length-1;i>=0;i--){const s=stars[i];s.phase+=dt*2;const sx=s.x,sy=s.y+Math.sin(s.phase)*7,rr=s.r*s.z;
+        if(Math.hypot(orb.x-sx,orb.y-sy)<orb.r*.72+rr){stars.splice(i,1);score++;scoreEl.textContent=String(score).padStart(3,'0');texts.push({x:sx,y:sy,text:'+1',life:.9});burst(sx,sy,'#ffe58f',18,200);beep(540+score*25,.12,.04);if(score>=14){endGame(true);break;}addStar();}
+      }
+      timeEl.textContent=String(Math.ceil(remaining)).padStart(2,'0');
+      const charge=Math.min(100,score/14*100);chargeEl.style.width=charge+'%';chargeText.textContent=Math.round(charge)+'%';
+    }
+    for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.pow(.18,dt);p.vy*=Math.pow(.18,dt);p.life-=dt;}
+    particles=particles.filter(p=>p.life>0);
+    for(const t of texts){t.y-=36*dt;t.life-=dt;}texts=texts.filter(t=>t.life>0);
+  }
+  function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
+  function drawBackground() {
+    const g=ctx.createLinearGradient(0,0,0,W.h);g.addColorStop(0,'#17192e');g.addColorStop(.58,'#10172a');g.addColorStop(1,'#141c30');ctx.fillStyle=g;ctx.fillRect(0,0,W.w,W.h);
+    const glow=ctx.createRadialGradient(W.w*.51,W.h*.48,0,W.w*.51,W.h*.48,W.w*.58);glow.addColorStop(0,'#4c457021');glow.addColorStop(1,'#17243a00');ctx.fillStyle=glow;ctx.fillRect(0,0,W.w,W.h);
+    for(const d of bgDots){ctx.globalAlpha=.12+d.z*.28;ctx.fillStyle=d.z>.76?'#b8fff6':'#b1b8ff';ctx.beginPath();ctx.arc(d.x+Math.sin(d.p)*3,d.y, d.z*1.25,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
+    const horizon=W.h*.72;ctx.strokeStyle='#8c9dcc10';ctx.lineWidth=1;
+    for(let i=-9;i<=9;i++){ctx.beginPath();ctx.moveTo(W.w/2+i*14,horizon);ctx.lineTo(W.w/2+i*W.w*.2,horizon+W.h*.42);ctx.stroke();}
+    for(let i=0;i<8;i++){const f=i/8,y=horizon+f*f*W.h*.34;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W.w,y);ctx.stroke();}
+    ctx.fillStyle='#9ca8d512';ctx.fillRect(0,horizon,W.w,1);
+  }
+  function drawStar(s) {
+    const x=s.x,y=s.y+Math.sin(s.phase)*7,r=s.r*s.z,tw=1+Math.sin(s.phase*2)*.12;
+    ctx.save();ctx.translate(x,y);ctx.scale(tw,1);ctx.shadowColor='#ffe28a';ctx.shadowBlur=23;
+    ctx.strokeStyle='#ffe493';ctx.lineWidth=1.5;ctx.globalAlpha=.7;ctx.beginPath();ctx.arc(0,0,r*1.8,0,Math.PI*2);ctx.stroke();
+    ctx.globalAlpha=1;ctx.fillStyle='#fff0ad';ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2===0?r:r*.44;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();ctx.fill();ctx.restore();
+  }
+  function drawOrb() {
+    const speed=Math.hypot(orb.vx,orb.vy), lean=clamp(orb.vx/500,-.2,.2), wobble=Math.sin(elapsed*8)*.035+orb.squash;
+    // soft projected shadow
+    ctx.save();ctx.globalAlpha=.27;ctx.fillStyle='#020611';ctx.filter='blur(10px)';ctx.beginPath();ctx.ellipse(orb.x+9,orb.y+orb.r*.83,orb.r*(.82+Math.min(speed/1000,.18)),orb.r*.22,0,0,Math.PI*2);ctx.fill();ctx.filter='none';ctx.restore();
+    // motion echoes
+    for(let i=orb.trail.length-1;i>=2;i--){const t=orb.trail[i],a=(1-i/orb.trail.length)*.08;ctx.globalAlpha=a;ctx.fillStyle='#6ff7e3';ctx.beginPath();ctx.arc(t.x,t.y,orb.r*(1-i*.045),0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
+    ctx.save();ctx.translate(orb.x,orb.y);ctx.rotate(lean);ctx.scale(1+wobble*.5,1-wobble*.65);
+    const r=orb.r*(1+orb.pulse*.08);
+    ctx.shadowColor='#65f1df';ctx.shadowBlur=28+orb.pulse*22;
+    const grad=ctx.createRadialGradient(-r*.36,-r*.43,r*.06,0,0,r*1.15);grad.addColorStop(0,'#ecfff7');grad.addColorStop(.18,'#b1fff0');grad.addColorStop(.48,'#68e6d8');grad.addColorStop(.78,'#42b5cb');grad.addColorStop(1,'#286296');
+    ctx.fillStyle=grad;ctx.beginPath();ctx.ellipse(0,0,r,r*(.96+Math.min(speed/1600,.08)),0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    // translucent inner ripples create a gel-like 3D volume
+    ctx.globalAlpha=.23;ctx.strokeStyle='#effff9';ctx.lineWidth=1.1;ctx.beginPath();ctx.ellipse(-r*.03,r*.12,r*.68,r*.75,-.24,Math.PI*1.02,Math.PI*1.92);ctx.stroke();ctx.beginPath();ctx.ellipse(r*.1,r*.14,r*.47,r*.52,.5,Math.PI*1.08,Math.PI*1.86);ctx.stroke();ctx.globalAlpha=1;
+    const shine=ctx.createRadialGradient(-r*.37,-r*.42,0,-r*.28,-r*.32,r*.42);shine.addColorStop(0,'#ffffffdd');shine.addColorStop(.28,'#ffffff6b');shine.addColorStop(1,'#ffffff00');ctx.fillStyle=shine;ctx.beginPath();ctx.ellipse(-r*.3,-r*.36,r*.37,r*.2,-.55,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#153953';ctx.globalAlpha=.75;ctx.beginPath();ctx.ellipse(-r*.18,r*.05,r*.045,r*.065,0,0,Math.PI*2);ctx.ellipse(r*.18,r*.05,r*.045,r*.065,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle='#164e63';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,r*.17,r*.11,.18,Math.PI-.18);ctx.stroke();
+    ctx.restore();
+  }
+  function draw() {
+    ctx.clearRect(0,0,W.w,W.h);drawBackground();
+    for(const s of stars)drawStar(s);
+    if(orb)drawOrb();
+    for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=9;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;ctx.shadowBlur=0;
+    for(const t of texts){ctx.globalAlpha=Math.max(0,t.life);ctx.fillStyle='#fff1a7';ctx.font='900 16px system-ui';ctx.textAlign='center';ctx.fillText(t.text,t.x,t.y);}ctx.globalAlpha=1;
+    if(state==='playing'&&pointer.active){ctx.globalAlpha=.24;ctx.strokeStyle='#a1fff1';ctx.lineWidth=1;ctx.beginPath();ctx.arc(pointer.x,pointer.y,12+Math.sin(elapsed*5)*2,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}
+  }
+  function loop(now){const dt=Math.min(.032,(now-last)/1000||0);last=now;update(dt);draw();requestAnimationFrame(loop);}
+  new ResizeObserver(resize).observe(stage);resize();requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
